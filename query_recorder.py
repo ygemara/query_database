@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-st.set_page_config(layout=“wide”)
+st.set_page_config(layout= "wide")
 st.title("Query Database")
 
 # Define the CSV and text file paths
