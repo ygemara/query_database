@@ -201,10 +201,10 @@ if index:
         report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{idx}")
     # Option to upload data from a CSV file
     
-    st.header("Upload Data from CSV")
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-    if uploaded_file is not None:
-        load_data_from_csv(uploaded_file)
+st.header("Upload Data from CSV")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+if uploaded_file is not None:
+    load_data_from_csv(uploaded_file)
 
     if st.button("Update Entry"):
         update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
