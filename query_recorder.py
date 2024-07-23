@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-st.set_page_config(layout= "wide")
+st.set_page_config(layout="wide")
 st.title("Query Database")
 
 # Define the CSV and text file paths
@@ -49,7 +49,8 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
     save_data(st.session_state.data)  # Save data to CSV
     
     # Append to text file
-    append_to_text_file(new_entry.to_dict('records')[0])
+    entry_dict = new_entry.to_dict('records')[0]
+    append_to_text_file(entry_dict)
 
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
@@ -123,7 +124,7 @@ code_input = st.text_area("Code", st.session_state.code_input, height=200)
 report_input = st.text_input("Report ID", st.session_state.report_input)
 
 if st.button("Add Entry"):
-    add_entry(date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
+    add_entry(date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
     st.success("Entry added!")
     # Clear input fields by resetting session state values
     st.session_state.date_input = datetime.today().date()
@@ -134,6 +135,7 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
     st.session_state.report_input = ""
+
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
 
@@ -160,14 +162,9 @@ if index is not None and index >= 0 and len(st.session_state.data) > 0:
     if 'Code' in entry:
         code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
     if 'Report ID' in entry:
-        ticket_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_ticket_{index}")
+        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{index}")
         
     if st.button("Update Entry"):
         update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
         st.success("Entry updated!")
-        st.experimental_rerun()  # Refresh the page to update the table
-
-    if st.button("Delete Entry"):
-        delete_entry(index)
-        st.success("Entry deleted!")
-        st.experimental_rerun()  # Refresh the page to update the table
+        st.experimental_rerun()  # Refresh the page 
