@@ -120,7 +120,7 @@ if 'edit_mode' not in st.session_state or not st.session_state.edit_mode:
     date_input = st.date_input("Date", datetime.today().date(), key='date_input')
     client_input = st.text_input("Client", "", key='client_input')
     am_input = st.text_input("AM", "", key='am_input')
-    sf_input = st.text_input("SF Ticket", "", key='ticket_input')
+    ticket_input = st.text_input("SF Ticket", "", key='ticket_input')
     use_case_input = st.text_input("Use Case", "", key='use_case_input')
     notes_input = st.text_area("Notes", "", key='notes_input')
     code_input = st.text_area("Code", "", key='code_input')
