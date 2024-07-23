@@ -76,6 +76,20 @@ def delete_entry(index):
 def display_table(data):
     st.write(data)
 
+# Code preview with expand/collapse option
+def display_code_preview(code_text):
+    preview_length = 200  # Number of characters to show in preview
+    if len(code_text) > preview_length:
+        st.text_area("Code Preview", code_text[:preview_length] + '...', height=100, max_chars=None)
+        if st.button("Show More"):
+            st.code(code_text, language='python')
+    else:
+        st.code(code_text, language='python')
+
+# Display the table with entries
+st.header("Current Entries")
+display_table(st.session_state.data)
+
 # User input section for adding new entries
 st.header("Add New Entry")
 if 'date_input' not in st.session_state:
@@ -113,20 +127,16 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
 
-# Display the table with entries
-st.header("Current Entries")
-display_table(st.session_state.data)
-
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
 
 # Allow user to select entry to edit or delete
-index = st.selectbox("Select an entry to edit/delete by index:", options=list(st.session_state.data.index))
+index = st.selectbox("Select an entry to edit/delete by index:", options=[None] + list(st.session_state.data.index))
 
-if index is not None and len(st.session_state.data) > 0:
+if index is not None and index >= 0 and len(st.session_state.data) > 0:
     st.subheader(f"Editing Entry {index}")
     entry = st.session_state.data.iloc[index]
-    
+
     # Display the edit form only if an entry is selected
     if 'Date' in entry:
         date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
@@ -152,19 +162,3 @@ if index is not None and len(st.session_state.data) > 0:
         delete_entry(index)
         st.success("Entry deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
-
-# Code preview with expand/collapse option
-def display_code_preview(code_text):
-    preview_length = 200  # Number of characters to show in preview
-    if len(code_text) > preview_length:
-        st.text_area("Code Preview", code_text[:preview_length] + '...', height=100, max_chars=None)
-        if st.button("Show More"):
-            st.code(code_text, language='python')
-    else:
-        st.code(code_text, language='python')
-
-# Display the table with expandable code preview
-st.header("Code Preview")
-for idx, row in st.session_state.data.iterrows():
-    st.write(f"Entry {idx}:")
-    display_code_preview(row['Code'])
