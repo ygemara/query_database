@@ -100,8 +100,9 @@ def delete_entry(index):
 
 # Display the table with entries
 def display_table(data):
-    # Use AgGrid for better table display
-    st.dataframe(data.style.format(subset=['Code'], formatter=lambda x: x.replace(' ', '&nbsp;').replace('\n', '<br>'), escape=False))
+    # Format the Code column for better display
+    data['Code'] = data['Code'].apply(lambda x: json.dumps(json.loads(x), indent=4) if x else x)
+    st.dataframe(data)
 
 # Code preview with expand/collapse option
 def display_code_preview(code_text):
