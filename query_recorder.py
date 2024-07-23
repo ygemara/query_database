@@ -100,7 +100,8 @@ def delete_entry(index):
 
 # Display the table with entries
 def display_table(data):
-    st.write(data)
+    # Use AgGrid for better table display
+    st.dataframe(data.style.format(subset=['Code'], formatter=lambda x: x.replace(' ', '&nbsp;').replace('\n', '<br>'), escape=False))
 
 # Code preview with expand/collapse option
 def display_code_preview(code_text):
@@ -171,36 +172,38 @@ if st.button("Load Data from Files"):
 st.header("Edit/Delete Entries")
 
 # Allow user to select entry to edit or delete
-index = st.selectbox("Select an entry to edit/delete by index:", options=[None] + list(st.session_state.data.index))
+options = [f"{i} - {row['Client']}/{row['AM']}" for i, row in st.session_state.data.iterrows()]
+index = st.selectbox("Select an entry to edit/delete:", options=[None] + options)
 
-if index is not None and index >= 0 and len(st.session_state.data) > 0:
-    st.subheader(f"Editing Entry {index}")
-    entry = st.session_state.data.iloc[index]
+if index:
+    idx = int(index.split(" - ")[0])
+    st.subheader(f"Editing Entry {idx}")
+    entry = st.session_state.data.iloc[idx]
 
     # Display the edit form only if an entry is selected
     if 'Date' in entry:
-        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
+        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{idx}")
     if 'Client' in entry:
-        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
+        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{idx}")
     if 'AM' in entry:
-        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
+        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{idx}")
     if 'SF Ticket' in entry:
-        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
+        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{idx}")
     if 'Use Case' in entry:
-        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
+        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{idx}")
     if 'Notes' in entry:
-        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
+        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{idx}")
     if 'Code' in entry:
-        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
+        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{idx}", height=200)
     if 'Report ID' in entry:
-        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{index}")
-        
+        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{idx}")
+
     if st.button("Update Entry"):
-        update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
+        update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
         st.success("Entry updated!")
         st.experimental_rerun()  # Refresh the page to update the table
 
     if st.button("Delete Entry"):
-        delete_entry(index)
+        delete_entry(idx)
         st.success("Entry deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
