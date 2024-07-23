@@ -51,13 +51,20 @@ def add_entry(date, client, am, sf, use_case, notes, code):
 
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code):
-    st.session_state.data.at[index, 'Date'] = date
-    st.session_state.data.at[index, 'Client'] = client
-    st.session_state.data.at[index, 'AM'] = am
-    st.session_state.data.at[index, 'SF Ticket'] = sf
-    st.session_state.data.at[index, 'Use Case'] = use_case
-    st.session_state.data.at[index, 'Notes'] = notes
-    st.session_state.data.at[index, 'Code'] = code
+    if 'Date' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'Date'] = date
+    if 'Client' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'Client'] = client
+    if 'AM' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'AM'] = am
+    if 'SF Ticket' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'SF Ticket'] = sf
+    if 'Use Case' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'Use Case'] = use_case
+    if 'Notes' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'Notes'] = notes
+    if 'Code' in st.session_state.data.columns:
+        st.session_state.data.at[index, 'Code'] = code
     save_data(st.session_state.data)  # Save data to CSV
 
 # Function to delete an entry
@@ -121,13 +128,20 @@ if index is not None and len(st.session_state.data) > 0:
     entry = st.session_state.data.iloc[index]
     
     # Display the edit form only if an entry is selected
-    date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
-    client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
-    am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
-    ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
-    use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
-    notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
-    code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
+    if 'Date' in entry:
+        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
+    if 'Client' in entry:
+        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
+    if 'AM' in entry:
+        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
+    if 'SF Ticket' in entry:
+        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
+    if 'Use Case' in entry:
+        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
+    if 'Notes' in entry:
+        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
+    if 'Code' in entry:
+        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
 
     if st.button("Update Entry"):
         update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
