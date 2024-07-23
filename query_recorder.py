@@ -204,7 +204,7 @@ if index:
     st.header("Upload Data from CSV")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
-    load_data_from_csv(uploaded_file)
+        load_data_from_csv(uploaded_file)
 
     if st.button("Update Entry"):
         update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
