@@ -16,7 +16,7 @@ def load_data():
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
         return data
     else:
-        return pd.DataFrame(columns=['Date', 'Client', 'AM', 'Use Case', 'Notes', 'Code'])
+        return pd.DataFrame(columns=['Date', 'Client', 'SF TIcket', 'AM', 'Use Case', 'Notes', 'Code'])
 
 # Save data to CSV file
 def save_data(data):
@@ -33,11 +33,12 @@ if 'data' not in st.session_state:
     save_data(st.session_state.data)  # Save data to CSV to ensure consistency
 
 # Function to add a new entry
-def add_entry(date, client, am, use_case, notes, code):
+def add_entry(date, client, am, sf, use_case, notes, code):
     new_entry = pd.DataFrame({
         'Date': [date], 
         'Client': [client],
         'AM': [am],
+        'SF Ticket':[sf],
         'Use Case': [use_case],
         'Notes': [notes],
         'Code': [code]
@@ -49,10 +50,11 @@ def add_entry(date, client, am, use_case, notes, code):
     append_to_text_file(new_entry.to_dict('records')[0])
 
 # Function to update an existing entry
-def update_entry(index, date, client, am, use_case, notes, code):
+def update_entry(index, date, client, am, sf, use_case, notes, code):
     st.session_state.data.at[index, 'Date'] = date
     st.session_state.data.at[index, 'Client'] = client
     st.session_state.data.at[index, 'AM'] = am
+    st.session_state.data.at[index, 'SF Ticket'] = sf
     st.session_state.data.at[index, 'Use Case'] = use_case
     st.session_state.data.at[index, 'Notes'] = notes
     st.session_state.data.at[index, 'Code'] = code
