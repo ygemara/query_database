@@ -36,11 +36,14 @@ if 'data' not in st.session_state:
 
 # Function to add a new entry
 def add_entry(date, client, am, sf, use_case, notes, code, report_id):
-    try:
-        formatted_code = json.dumps(json.loads(code), indent=4)
-    except json.JSONDecodeError:
-        st.error("Invalid JSON format in the Code field.")
-        return
+    if code:
+        try:
+            formatted_code = json.dumps(json.loads(code), indent=4)
+        except json.JSONDecodeError:
+            st.error("Invalid JSON format in the Code field.")
+            return
+    else:
+        formatted_code = ""
 
     new_entry = pd.DataFrame({
         'Date': [date], 
@@ -61,11 +64,14 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
 
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
-    try:
-        formatted_code = json.dumps(json.loads(code), indent=4)
-    except json.JSONDecodeError:
-        st.error("Invalid JSON format in the Code field.")
-        return
+    if code:
+        try:
+            formatted_code = json.dumps(json.loads(code), indent=4)
+        except json.JSONDecodeError:
+            st.error("Invalid JSON format in the Code field.")
+            return
+    else:
+        formatted_code = ""
 
     if 'Date' in st.session_state.data.columns:
         st.session_state.data.at[index, 'Date'] = date
