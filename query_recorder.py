@@ -16,10 +16,11 @@ def load_data_from_csv(uploaded_file):
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file, parse_dates=['Date'])
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
-        return data
+        st.session_state.data = data
+        st.success("Data loaded from CSV.")
     else:
         st.warning("No file uploaded. Initializing empty DataFrame.")
-        return pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
+        st.session_state.data = pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
 
 # Function to load data from the default CSV file if it exists
 def load_data():
@@ -127,11 +128,11 @@ def display_code_preview(code_text):
 st.header("Current Entries")
 display_table(st.session_state.data)
 
-# Section to download the current table data
-st.header("Download Data")
-st.download_button(label='Download data.csv', data=st.session_state.data.to_csv(index=False), file_name='data.csv', mime='text/csv')
-with open(TEXT_FILE_PATH, 'r') as f:
-    st.download_button(label='Download entries.txt', data=f.read(), file_name='entries.txt', mime='text/plain')
+# Option to upload data from a CSV file
+st.header("Upload Data from CSV")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+if uploaded_file is not None:
+    load_data_from_csv(uploaded_file)
 
 # User input section for adding new entries
 st.header("Add New Entry")
@@ -173,13 +174,6 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
     st.session_state.report_input = ""
-
-# Option to upload data from a CSV file
-st.header("Upload Data from CSV")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-if uploaded_file is not None:
-    st.session_state.data = load_data_from_csv(uploaded_file)
-    st.success("Data loaded from CSV.")
 
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
