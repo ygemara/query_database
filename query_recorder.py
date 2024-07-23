@@ -38,7 +38,7 @@ def add_entry(date, client, am, sf, use_case, notes, code):
         'Date': [date], 
         'Client': [client],
         'AM': [am],
-        'SF Ticket':[sf],
+        'SF Ticket': [sf],
         'Use Case': [use_case],
         'Notes': [notes],
         'Code': [code]
@@ -73,7 +73,7 @@ def display_expandable_table(data):
         for i, (col, value) in enumerate(row.items()):
             if i == len(row) - 1:  # Last column (Code)
                 if idx == expanded_row:
-                    cols[i].code(value, language='python')
+                    cols[i].code(value, language='python')  # Render as code
                     if cols[i].button('Collapse', key=f'collapse_{idx}'):
                         st.session_state.expanded_row = None
                 else:
@@ -100,13 +100,13 @@ if 'edit_mode' in st.session_state and st.session_state.edit_mode:
     edit_index = st.session_state.edit_index
     entry = st.session_state.data.iloc[edit_index]
     
-    date_input = st.date_input("Date", pd.to_datetime(entry['Date']))
+    date_input = st.date_input("Date", pd.to_datetime(entry['Date']).date())
     client_input = st.text_input("Client", entry['Client'])
     am_input = st.text_input("AM", entry['AM'])
     ticket_input = st.text_input("SF Ticket", entry['SF Ticket'])
     use_case_input = st.text_input("Use Case", entry['Use Case'])
     notes_input = st.text_area("Notes", entry['Notes'])
-    code_input = st.text_area("Code", entry['Code'])
+    code_input = st.text_area("Code", entry['Code'], height=200)  # Ensure enough height for code
     
     if st.button("Update Entry"):
         update_entry(edit_index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
@@ -117,18 +117,35 @@ if 'edit_mode' in st.session_state and st.session_state.edit_mode:
 # User input section for adding new entries
 if 'edit_mode' not in st.session_state or not st.session_state.edit_mode:
     st.header("Add New Entry")
-    date_input = st.date_input("Date", datetime.today().date(), key='date_input')
-    client_input = st.text_input("Client", "", key='client_input')
-    am_input = st.text_input("AM", "", key='am_input')
-    ticket_input = st.text_input("SF Ticket", "", key='ticket_input')
-    use_case_input = st.text_input("Use Case", "", key='use_case_input')
-    notes_input = st.text_area("Notes", "", key='notes_input')
-    code_input = st.text_area("Code", "", key='code_input')
+    
+    # Set default values only if not present in session state
+    if 'date_input' not in st.session_state:
+        st.session_state.date_input = datetime.today().date()
+    if 'client_input' not in st.session_state:
+        st.session_state.client_input = ""
+    if 'am_input' not in st.session_state:
+        st.session_state.am_input = ""
+    if 'ticket_input' not in st.session_state:
+        st.session_state.ticket_input = ""
+    if 'use_case_input' not in st.session_state:
+        st.session_state.use_case_input = ""
+    if 'notes_input' not in st.session_state:
+        st.session_state.notes_input = ""
+    if 'code_input' not in st.session_state:
+        st.session_state.code_input = ""
+
+    date_input = st.date_input("Date", st.session_state.date_input)
+    client_input = st.text_input("Client", st.session_state.client_input)
+    am_input = st.text_input("AM", st.session_state.am_input)
+    ticket_input = st.text_input("SF Ticket", st.session_state.ticket_input)
+    use_case_input = st.text_input("Use Case", st.session_state.use_case_input)
+    notes_input = st.text_area("Notes", st.session_state.notes_input)
+    code_input = st.text_area("Code", st.session_state.code_input, height=200)
     
     if st.button("Add Entry"):
         add_entry(date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
         st.success("Entry added!")
-        # Clear input fields
+        # Clear input fields by resetting session state values
         st.session_state.date_input = datetime.today().date()
         st.session_state.client_input = ""
         st.session_state.am_input = ""
@@ -136,5 +153,3 @@ if 'edit_mode' not in st.session_state or not st.session_state.edit_mode:
         st.session_state.use_case_input = ""
         st.session_state.notes_input = ""
         st.session_state.code_input = ""
-
-# No need for a separate delete entry section since each row now has a delete button
