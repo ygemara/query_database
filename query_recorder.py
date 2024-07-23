@@ -103,7 +103,7 @@ if 'edit_mode' in st.session_state and st.session_state.edit_mode:
     date_input = st.date_input("Date", pd.to_datetime(entry['Date']))
     client_input = st.text_input("Client", entry['Client'])
     am_input = st.text_input("AM", entry['AM'])
-    ticket_input = st.text_input("SF Ticket", entry['ticket_input'])
+    ticket_input = st.text_input("SF Ticket", entry['SF Ticket'])
     use_case_input = st.text_input("Use Case", entry['Use Case'])
     notes_input = st.text_area("Notes", entry['Notes'])
     code_input = st.text_area("Code", entry['Code'])
