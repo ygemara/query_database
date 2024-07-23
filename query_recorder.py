@@ -11,28 +11,30 @@ st.title("Query Database")
 CSV_FILE_PATH = 'data.csv'
 TEXT_FILE_PATH = 'entries.txt'
 
-# Load data from CSV file if it exists
+# Function to load data from CSV file if it exists
 def load_data():
     if os.path.isfile(CSV_FILE_PATH):
         data = pd.read_csv(CSV_FILE_PATH, parse_dates=['Date'])
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
         return data
     else:
+        st.warning(f"{CSV_FILE_PATH} not found. Initializing empty DataFrame.")
         return pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
 
 # Save data to CSV file
 def save_data(data):
-    data.to_csv("testing.csv", index=False)
+    data.to_csv(CSV_FILE_PATH, index=False)
+    st.write(f"Data saved to {CSV_FILE_PATH}")
 
 # Append entry to text file
 def append_to_text_file(entry):
     with open(TEXT_FILE_PATH, 'a') as f:
         f.write(f"{entry}\n")
+    st.write(f"Entry appended to {TEXT_FILE_PATH}")
 
 # Initialize session state for the table and input fields
 if 'data' not in st.session_state:
     st.session_state.data = load_data()
-    save_data(st.session_state.data)  # Save data to CSV to ensure consistency
 
 # Function to add a new entry
 def add_entry(date, client, am, sf, use_case, notes, code, report_id):
@@ -154,6 +156,16 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
     st.session_state.report_input = ""
+
+    # Download links for the updated files
+    st.download_button(label='Download data.csv', data=st.session_state.data.to_csv(index=False), file_name='data.csv', mime='text/csv')
+    with open(TEXT_FILE_PATH, 'r') as f:
+        st.download_button(label='Download entries.txt', data=f.read(), file_name='entries.txt', mime='text/plain')
+
+# Option to load data from files
+if st.button("Load Data from Files"):
+    st.session_state.data = load_data()
+    st.success("Data loaded from files.")
 
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
