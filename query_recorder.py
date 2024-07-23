@@ -11,14 +11,23 @@ st.title("Query Database")
 CSV_FILE_PATH = 'data.csv'
 TEXT_FILE_PATH = 'entries.txt'
 
-# Function to load data from CSV file if it exists
+# Function to load data from an uploaded CSV file
+def load_data_from_csv(uploaded_file):
+    if uploaded_file is not None:
+        data = pd.read_csv(uploaded_file, parse_dates=['Date'])
+        data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
+        return data
+    else:
+        st.warning("No file uploaded. Initializing empty DataFrame.")
+        return pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
+
+# Function to load data from the default CSV file if it exists
 def load_data():
     if os.path.isfile(CSV_FILE_PATH):
         data = pd.read_csv(CSV_FILE_PATH, parse_dates=['Date'])
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
         return data
     else:
-        st.warning(f"{CSV_FILE_PATH} not found. Initializing empty DataFrame.")
         return pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
 
 # Save data to CSV file
@@ -118,6 +127,12 @@ def display_code_preview(code_text):
 st.header("Current Entries")
 display_table(st.session_state.data)
 
+# Section to download the current table data
+st.header("Download Data")
+st.download_button(label='Download data.csv', data=st.session_state.data.to_csv(index=False), file_name='data.csv', mime='text/csv')
+with open(TEXT_FILE_PATH, 'r') as f:
+    st.download_button(label='Download entries.txt', data=f.read(), file_name='entries.txt', mime='text/plain')
+
 # User input section for adding new entries
 st.header("Add New Entry")
 if 'date_input' not in st.session_state:
@@ -159,15 +174,12 @@ if st.button("Add Entry"):
     st.session_state.code_input = ""
     st.session_state.report_input = ""
 
-    # Download links for the updated files
-    st.download_button(label='Download data.csv', data=st.session_state.data.to_csv(index=False), file_name='data.csv', mime='text/csv')
-    with open(TEXT_FILE_PATH, 'r') as f:
-        st.download_button(label='Download entries.txt', data=f.read(), file_name='entries.txt', mime='text/plain')
-
-# Option to load data from files
-if st.button("Load Data from Files"):
-    st.session_state.data = load_data()
-    st.success("Data loaded from files.")
+# Option to upload data from a CSV file
+st.header("Upload Data from CSV")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+if uploaded_file is not None:
+    st.session_state.data = load_data_from_csv(uploaded_file)
+    st.success("Data loaded from CSV.")
 
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
