@@ -65,53 +65,39 @@ def delete_entry(index):
     st.session_state.data = st.session_state.data.drop(index).reset_index(drop=True)
     save_data(st.session_state.data)  # Save data to CSV
 
-# Display the table with expandable "Code" column and edit/delete options
-def display_expandable_table(data):
-    expanded_row = st.session_state.get('expanded_row', None)
-    for idx, row in data.iterrows():
-        cols = st.columns(len(row) + 2)
-        for i, (col, value) in enumerate(row.items()):
-            if i == len(row) - 1:  # Last column (Code)
-                if idx == expanded_row:
-                    cols[i].code(value, language='python')  # Render as code
-                    if cols[i].button('Collapse', key=f'collapse_{idx}'):
-                        st.session_state.expanded_row = None
-                else:
-                    if cols[i].button('Show Code', key=f'expand_{idx}'):
-                        st.session_state.expanded_row = idx
-            else:
-                cols[i].write(value)
-        if cols[-2].button('Edit', key=f'edit_{idx}'):
-            st.session_state.edit_index = idx
-            st.session_state.edit_mode = True
-        if cols[-1].button('Delete', key=f'delete_{idx}'):
-            delete_entry(idx)
-            st.success("Entry deleted!")
-            st.experimental_rerun()  # Refresh the page to update the table
+# Display the table
+def display_table(data):
+    st.write(data)
 
-def expand_code(idx):
-    st.session_state.expanded_row = idx
+display_table(st.session_state.data)
 
-display_expandable_table(st.session_state.data)
+# Edit/delete section at the end
+st.header("Edit/Delete Entries")
 
-# Edit entry section
-if 'edit_mode' in st.session_state and st.session_state.edit_mode:
-    st.header("Edit Entry")
-    edit_index = st.session_state.edit_index
-    entry = st.session_state.data.iloc[edit_index]
+# Allow user to select entry to edit or delete
+index = st.selectbox("Select an entry by index:", options=list(st.session_state.data.index), format_func=lambda x: f"Entry {x}")
+
+if index is not None and index in st.session_state.data.index:
+    entry = st.session_state.data.iloc[index]
     
+    # Display the selected entry for editing
+    st.subheader(f"Edit Entry {index}")
     date_input = st.date_input("Date", pd.to_datetime(entry['Date']).date())
     client_input = st.text_input("Client", entry['Client'])
     am_input = st.text_input("AM", entry['AM'])
     ticket_input = st.text_input("SF Ticket", entry['SF Ticket'])
     use_case_input = st.text_input("Use Case", entry['Use Case'])
     notes_input = st.text_area("Notes", entry['Notes'])
-    code_input = st.text_area("Code", entry['Code'], height=200)  # Ensure enough height for code
+    code_input = st.text_area("Code", entry['Code'], height=200)
     
     if st.button("Update Entry"):
-        update_entry(edit_index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
+        update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
         st.success("Entry updated!")
-        st.session_state.edit_mode = False
+        st.experimental_rerun()  # Refresh the page to update the table
+    
+    if st.button("Delete Entry"):
+        delete_entry(index)
+        st.success("Entry deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
 
 # User input section for adding new entries
