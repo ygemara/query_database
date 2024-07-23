@@ -83,9 +83,9 @@ def display_code_preview(code_text):
     if len(code_text) > preview_length:
         st.text_area("Code Preview", code_text[:preview_length] + '...', height=100, max_chars=None)
         if st.button("Show More"):
-            st.code(code_text, language='python')
+            st.code(code_text, language='json')
     else:
-        st.code(code_text, language='python')
+        st.code(code_text, language='json')
 
 # Display the table with entries
 st.header("Current Entries")
