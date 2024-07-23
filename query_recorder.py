@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-st.title("Bethesda Collections")
+st.title("Query Database")
 
 # Define the CSV and text file paths
 CSV_FILE_PATH = 'data.csv'
