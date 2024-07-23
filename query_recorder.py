@@ -68,6 +68,10 @@ def delete_entry(index):
 # Display the table
 def display_table(data):
     st.write(data)
+    
+# Display the table with entries
+st.header("Current Entries")
+display_table(st.session_state.data)
 
 # User input section for adding new entries
 st.header("Add New Entry")
@@ -106,9 +110,7 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
 
-# Display the table with entries
-st.header("Current Entries")
-display_table(st.session_state.data)
+
 
 # Edit/delete section at the end
 st.header("Edit/Delete Entries")
