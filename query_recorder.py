@@ -22,7 +22,7 @@ def load_data():
 
 # Save data to CSV file
 def save_data(data):
-    data.to_csv(CSV_FILE_PATH, index=False)
+    data.to_csv("testing.csv", index=False)
 
 # Append entry to text file
 def append_to_text_file(entry):
