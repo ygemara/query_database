@@ -117,17 +117,17 @@ st.header("Edit/Delete Entries")
 index = st.selectbox("Select an entry by index:", options=list(st.session_state.data.index), format_func=lambda x: f"Entry {x}")
 
 if index is not None and index in st.session_state.data.index:
-    entry = st.session_state.data.iloc[index]
+    entry = st.session_state.data.loc[index]
     
     # Display the selected entry for editing
     st.subheader(f"Edit Entry {index}")
-    date_input = st.date_input("Date", pd.to_datetime(entry['Date']).date(), key=f"edit_date_{index}")
-    client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
-    am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
-    ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
-    use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
-    notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
-    code_input = st.text_area("Code", entry['Code'], height=200, key=f"edit_code_{index}")
+    date_input = st.date_input("Date", pd.to_datetime(entry.get('Date', datetime.today().date())).date(), key=f"edit_date_{index}")
+    client_input = st.text_input("Client", entry.get('Client', ""), key=f"edit_client_{index}")
+    am_input = st.text_input("AM", entry.get('AM', ""), key=f"edit_am_{index}")
+    ticket_input = st.text_input("SF Ticket", entry.get('SF Ticket', ""), key=f"edit_ticket_{index}")
+    use_case_input = st.text_input("Use Case", entry.get('Use Case', ""), key=f"edit_use_case_{index}")
+    notes_input = st.text_area("Notes", entry.get('Notes', ""), key=f"edit_notes_{index}")
+    code_input = st.text_area("Code", entry.get('Code', ""), height=200, key=f"edit_code_{index}")
     
     if st.button("Update Entry", key=f"update_{index}"):
         update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
