@@ -16,7 +16,7 @@ def load_data():
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
         return data
     else:
-        return pd.DataFrame(columns=['Date', 'Client', 'SF TIcket', 'AM', 'Use Case', 'Notes', 'Code'])
+        return pd.DataFrame(columns=['Date', 'Client', 'SF TIcket', 'AM', 'SF Ticket','Use Case', 'Notes', 'Code'])
 
 # Save data to CSV file
 def save_data(data):
