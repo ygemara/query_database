@@ -65,13 +65,9 @@ def delete_entry(index):
     st.session_state.data = st.session_state.data.drop(index).reset_index(drop=True)
     save_data(st.session_state.data)  # Save data to CSV
 
-# Display the table
+# Display the table with entries
 def display_table(data):
     st.write(data)
-    
-# Display the table with entries
-st.header("Current Entries")
-display_table(st.session_state.data)
 
 # User input section for adding new entries
 st.header("Add New Entry")
@@ -110,33 +106,51 @@ if st.button("Add Entry"):
     st.session_state.notes_input = ""
     st.session_state.code_input = ""
 
+# Display the table with entries
+st.header("Current Entries")
+display_table(st.session_state.data)
 
-
-# Edit/delete section at the end
+# Edit/Delete section at the end
 st.header("Edit/Delete Entries")
 
 # Allow user to select entry to edit or delete
-index = st.selectbox("Select an entry by index:", options=list(st.session_state.data.index), format_func=lambda x: f"Entry {x}")
+index = st.selectbox("Select an entry to edit/delete by index:", options=list(st.session_state.data.index))
 
-if index is not None and index in st.session_state.data.index:
-    entry = st.session_state.data.loc[index]
+if index is not None and len(st.session_state.data) > 0:
+    st.subheader(f"Editing Entry {index}")
+    entry = st.session_state.data.iloc[index]
     
-    # Display the selected entry for editing
-    st.subheader(f"Edit Entry {index}")
-    date_input = st.date_input("Date", pd.to_datetime(entry.get('Date', datetime.today().date())).date(), key=f"edit_date_{index}")
-    client_input = st.text_input("Client", entry.get('Client', ""), key=f"edit_client_{index}")
-    am_input = st.text_input("AM", entry.get('AM', ""), key=f"edit_am_{index}")
-    ticket_input = st.text_input("SF Ticket", entry.get('SF Ticket', ""), key=f"edit_ticket_{index}")
-    use_case_input = st.text_input("Use Case", entry.get('Use Case', ""), key=f"edit_use_case_{index}")
-    notes_input = st.text_area("Notes", entry.get('Notes', ""), key=f"edit_notes_{index}")
-    code_input = st.text_area("Code", entry.get('Code', ""), height=200, key=f"edit_code_{index}")
-    
-    if st.button("Update Entry", key=f"update_{index}"):
+    # Display the edit form only if an entry is selected
+    date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
+    client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
+    am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
+    ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
+    use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
+    notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
+    code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
+
+    if st.button("Update Entry"):
         update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input)
         st.success("Entry updated!")
         st.experimental_rerun()  # Refresh the page to update the table
-    
-    if st.button("Delete Entry", key=f"delete_{index}"):
+
+    if st.button("Delete Entry"):
         delete_entry(index)
         st.success("Entry deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
+
+# Code preview with expand/collapse option
+def display_code_preview(code_text):
+    preview_length = 200  # Number of characters to show in preview
+    if len(code_text) > preview_length:
+        st.text_area("Code Preview", code_text[:preview_length] + '...', height=100, max_chars=None)
+        if st.button("Show More"):
+            st.code(code_text, language='python')
+    else:
+        st.code(code_text, language='python')
+
+# Display the table with expandable code preview
+st.header("Code Preview")
+for idx, row in st.session_state.data.iterrows():
+    st.write(f"Entry {idx}:")
+    display_code_preview(row['Code'])
