@@ -101,23 +101,46 @@ display_table(st.session_state.data)
 
 # Expandable section for adding new entries
 with st.expander("Add New Entry"):
-    if 'date_input' not in st.session_state:
-        st.session_state.date_input = datetime.today().date()
-    if 'client_input' not in st.session_state:
-        st.session_state.client_input = ""
-    if 'am_input' not in st.session_state:
-        st.session_state.am_input = ""
-    if 'ticket_input' not in st.session_state:
-        st.session_state.ticket_input = ""
-    if 'use_case_input' not in st.session_state:
-        st.session_state.use_case_input = ""
-    if 'notes_input' not in st.session_state:
-        st.session_state.notes_input = ""
-    if 'code_input' not in st.session_state:
-        st.session_state.code_input = ""
-    if 'report_input' not in st.session_state:
-        st.session_state.report_input = ""
+    st.markdown("### Fill in the details below to add a new entry:")
+    
+    # Columns for input fields to make it more organized
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        date_input = st.date_input("Date", datetime.today().date())
+        client_input = st.text_input("Client")
+        am_input = st.text_input("AM")
+        ticket_input = st.text_input("SF Ticket")
+    
+    with col2:
+        use_case_input = st.text_input("Use Case")
+        notes_input = st.text_area("Notes")
+        code_input = st.text_area("Code", height=200)
+        report_input = st.text_input("Report ID")
 
+    if st.button("Add Entry"):
+        add_entry(
+            date_input.strftime('%Y-%m-%d'), 
+            client_input, 
+            am_input, 
+            ticket_input, 
+            use_case_input, 
+            notes_input, 
+            code_input, 
+            report_input
+        )
+        st.success("Entry added!")
+        # Clear input fields by resetting session state values
+        st.session_state.date_input = datetime.today().date()
+        st.session_state.client_input = ""
+        st.session_state.am_input = ""
+        st.session_state.ticket_input = ""
+        st.session_state.use_case_input = ""
+        st.session_state.notes_input = ""
+        st.session_state.code_input = ""
+        st.session_state.report_input = ""
+        st.experimental_rerun()
+        
     date_input = st.date_input("Date", st.session_state.date_input)
     client_input = st.text_input("Client", st.session_state.client_input)
     am_input = st.text_input("AM", st.session_state.am_input)
