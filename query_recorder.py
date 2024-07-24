@@ -128,6 +128,11 @@ def display_code_preview(code_text):
 st.header("Current Entries")
 display_table(st.session_state.data)
 
+# Option to upload data from a CSV file
+st.header("Upload Data from CSV")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+if uploaded_file is not None:
+    load_data_from_csv(uploaded_file)
 
 # User input section for adding new entries
 st.header("Add New Entry")
@@ -199,12 +204,6 @@ if index:
         code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{idx}", height=200)
     if 'Report ID' in entry:
         report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{idx}")
-    # Option to upload data from a CSV file
-    
-st.header("Upload Data from CSV")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-if uploaded_file is not None:
-    load_data_from_csv(uploaded_file)
 
     if st.button("Update Entry"):
         update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
