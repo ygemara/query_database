@@ -11,17 +11,6 @@ st.title("Query Database")
 CSV_FILE_PATH = 'data.csv'
 TEXT_FILE_PATH = 'entries.txt'
 
-# Function to load data from an uploaded CSV file
-def load_data_from_csv(uploaded_file):
-    if uploaded_file is not None:
-        data = pd.read_csv(uploaded_file, parse_dates=['Date'])
-        data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
-        st.session_state.data = data
-        st.success("Data loaded from CSV.")
-    else:
-        st.warning("No file uploaded. Initializing empty DataFrame.")
-        st.session_state.data = pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
-
 # Function to load data from the default CSV file if it exists
 def load_data():
     if os.path.isfile(CSV_FILE_PATH):
@@ -128,52 +117,46 @@ def display_code_preview(code_text):
 st.header("Current Entries")
 display_table(st.session_state.data)
 
-# Option to upload data from a CSV file
-st.header("Upload Data from CSV")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-if uploaded_file is not None:
-    load_data_from_csv(uploaded_file)
+# Expandable section for adding new entries
+with st.expander("Add New Entry"):
+    if 'date_input' not in st.session_state:
+        st.session_state.date_input = datetime.today().date()
+    if 'client_input' not in st.session_state:
+        st.session_state.client_input = ""
+    if 'am_input' not in st.session_state:
+        st.session_state.am_input = ""
+    if 'ticket_input' not in st.session_state:
+        st.session_state.ticket_input = ""
+    if 'use_case_input' not in st.session_state:
+        st.session_state.use_case_input = ""
+    if 'notes_input' not in st.session_state:
+        st.session_state.notes_input = ""
+    if 'code_input' not in st.session_state:
+        st.session_state.code_input = ""
+    if 'report_input' not in st.session_state:
+        st.session_state.report_input = ""
 
-# User input section for adding new entries
-st.header("Add New Entry")
-if 'date_input' not in st.session_state:
-    st.session_state.date_input = datetime.today().date()
-if 'client_input' not in st.session_state:
-    st.session_state.client_input = ""
-if 'am_input' not in st.session_state:
-    st.session_state.am_input = ""
-if 'ticket_input' not in st.session_state:
-    st.session_state.ticket_input = ""
-if 'use_case_input' not in st.session_state:
-    st.session_state.use_case_input = ""
-if 'notes_input' not in st.session_state:
-    st.session_state.notes_input = ""
-if 'code_input' not in st.session_state:
-    st.session_state.code_input = ""
-if 'report_input' not in st.session_state:
-    st.session_state.report_input = ""
+    date_input = st.date_input("Date", st.session_state.date_input)
+    client_input = st.text_input("Client", st.session_state.client_input)
+    am_input = st.text_input("AM", st.session_state.am_input)
+    ticket_input = st.text_input("SF Ticket", st.session_state.ticket_input)
+    use_case_input = st.text_input("Use Case", st.session_state.use_case_input)
+    notes_input = st.text_area("Notes", st.session_state.notes_input)
+    code_input = st.text_area("Code", st.session_state.code_input, height=200)
+    report_input = st.text_input("Report ID", st.session_state.report_input)
 
-date_input = st.date_input("Date", st.session_state.date_input)
-client_input = st.text_input("Client", st.session_state.client_input)
-am_input = st.text_input("AM", st.session_state.am_input)
-ticket_input = st.text_input("SF Ticket", st.session_state.ticket_input)
-use_case_input = st.text_input("Use Case", st.session_state.use_case_input)
-notes_input = st.text_area("Notes", st.session_state.notes_input)
-code_input = st.text_area("Code", st.session_state.code_input, height=200)
-report_input = st.text_input("Report ID", st.session_state.report_input)
-
-if st.button("Add Entry"):
-    add_entry(date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
-    st.success("Entry added!")
-    # Clear input fields by resetting session state values
-    st.session_state.date_input = datetime.today().date()
-    st.session_state.client_input = ""
-    st.session_state.am_input = ""
-    st.session_state.ticket_input = ""
-    st.session_state.use_case_input = ""
-    st.session_state.notes_input = ""
-    st.session_state.code_input = ""
-    st.session_state.report_input = ""
+    if st.button("Add Entry"):
+        add_entry(date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
+        st.success("Entry added!")
+        # Clear input fields by resetting session state values
+        st.session_state.date_input = datetime.today().date()
+        st.session_state.client_input = ""
+        st.session_state.am_input = ""
+        st.session_state.ticket_input = ""
+        st.session_state.use_case_input = ""
+        st.session_state.notes_input = ""
+        st.session_state.code_input = ""
+        st.session_state.report_input = ""
 
 # Edit/Delete section at the end
 st.header("Edit/Delete Entries")
@@ -214,3 +197,12 @@ if index:
         delete_entry(idx)
         st.success("Entry deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
+
+# Option to upload data from a CSV file
+st.header("Upload Data from CSV")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+if uploaded_file is not None:
+    data = pd.read_csv(uploaded_file, parse_dates=['Date'])
+    data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
+    st.session_state.data = pd.concat([st.session_state.data, data], ignore_index=True)
+    st.success("Data loaded from CSV.")
