@@ -111,8 +111,15 @@ def delete_entries(indices):
 
 # Display the table with entries
 def display_table(data):
-    # Format the Code column for better display
-    data['Code'] = data['Code'].apply(lambda x: json.dumps(json.loads(x), indent=4) if x else x)
+    def format_code(x):
+        if x:
+            try:
+                return json.dumps(json.loads(x), indent=4)
+            except json.JSONDecodeError:
+                return x  # Return the original value if it's not valid JSON
+        return x
+
+    data['Code'] = data['Code'].apply(format_code)
     st.dataframe(data)
 
 # Display the table with entries
