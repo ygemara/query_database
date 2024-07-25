@@ -8,12 +8,11 @@ import json
 st.set_page_config(layout="wide")
 st.title("Query Database")
 
-# Define the scope and credentials for Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("path_to_your_service_account.json", scope)
-client = gspread.authorize(credentials)
+# Use Streamlit secrets to get the credentials
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"])
 
-# Open the Google Sheet
+# Authorize and open the Google Sheet
+client = gspread.authorize(credentials)
 sheet = client.open("Your Google Sheet Name").sheet1
 
 # Function to load data from Google Sheet
