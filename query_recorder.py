@@ -1,37 +1,34 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-import os
-import json
 import gspread
-from google.oauth2 import service_account
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
+import json
 
 st.set_page_config(layout="wide")
 st.title("Query Database")
 
-# Define the CSV and text file paths
-CSV_FILE_PATH = 'data.csv'
-TEXT_FILE_PATH = 'entries.txt'
+# Define the scope and credentials for Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_name("path_to_your_service_account.json", scope)
+client = gspread.authorize(credentials)
 
-# Function to load data from the default CSV file if it exists
+# Open the Google Sheet
+sheet = client.open("Your Google Sheet Name").sheet1
+
+# Function to load data from Google Sheet
 def load_data():
-    if os.path.isfile(CSV_FILE_PATH):
-        data = pd.read_csv(CSV_FILE_PATH, parse_dates=['Date'])
-        data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
-        return data
-    else:
-        return pd.DataFrame(columns=['Date', 'Client', 'AM', 'SF Ticket', 'Use Case', 'Notes', 'Code', 'Report ID'])
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+    return df
 
-# Save data to CSV file
-def save_data(data):
-    data.to_csv(CSV_FILE_PATH, index=False)
-    st.write(f"Data saved to {CSV_FILE_PATH}")
-
-# Append entry to text file
-def append_to_text_file(entry):
-    with open(TEXT_FILE_PATH, 'a') as f:
-        f.write(f"{entry}\n")
-    st.write(f"Entry appended to {TEXT_FILE_PATH}")
+# Function to save data to Google Sheet
+def save_data(df):
+    sheet.clear()
+    sheet.update([df.columns.values.tolist()] + df.values.tolist())
+    st.write("Data saved to Google Sheet")
 
 # Initialize session state for the table and input fields
 if 'data' not in st.session_state:
@@ -59,14 +56,7 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
         'Report ID': [report_id]
     })
     st.session_state.data = pd.concat([st.session_state.data, new_entry], ignore_index=True)
-    save_data(st.session_state.data)  # Save data to CSV
-    
-    # Append to text file
-    entry_dict = new_entry.to_dict('records')[0]
-    append_to_text_file(entry_dict)
-
-    # Upload the new entry to Google Sheets
-    upload_to_google_sheets(new_entry)
+    save_data(st.session_state.data)  # Save data to Google Sheet
 
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
@@ -87,61 +77,18 @@ def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
     st.session_state.data.at[index, 'Notes'] = notes
     st.session_state.data.at[index, 'Code'] = formatted_code
     st.session_state.data.at[index, 'Report ID'] = report_id
-    save_data(st.session_state.data)  # Save data to CSV
+    save_data(st.session_state.data)  # Save data to Google Sheet
 
 # Function to delete multiple entries
 def delete_entries(indices):
     st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
-    save_data(st.session_state.data)  # Save data to CSV
+    save_data(st.session_state.data)  # Save data to Google Sheet
 
 # Display the table with entries
 def display_table(data):
     # Format the Code column for better display
     data['Code'] = data['Code'].apply(lambda x: json.dumps(json.loads(x), indent=4) if x else x)
     st.dataframe(data)
-
-# Function to upload data to Google Sheets
-def upload_to_google_sheets(new_entry):
-    try:
-        credentials = service_account.Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
-            scopes=[
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive"
-            ]
-        )
-
-        client = gspread.authorize(credentials)
-        sheet_id = st.secrets["sheet_id"]
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-        database_df = pd.read_csv(csv_url, on_bad_lines='skip')
-
-        # Concatenate the original DataFrame with the new entry
-        database_df = pd.concat([database_df, new_entry], ignore_index=True)
-
-        # Read the Google Sheets URL from Streamlit secrets
-        sheet_url = st.secrets["private_gsheets_url"]
-        sheet = client.open_by_url(sheet_url)
-        worksheet = sheet.worksheet("Sheet1")
-
-        google_sheet_headers = worksheet.row_values(1)
-        dataframe_headers = database_df.columns.tolist()
-
-        st.write("Google Sheet Headers:", google_sheet_headers)
-        st.write("DataFrame Headers:", dataframe_headers)
-
-        if google_sheet_headers != dataframe_headers:
-            st.error("Column headers do not match!")
-        else:
-            data = [dataframe_headers] + database_df.values.tolist()
-            try:
-                worksheet.clear()
-                worksheet.update(data)
-                st.success('Data has been written to Google Sheets')
-            except Exception as e:
-                st.error(f'An error occurred while updating the worksheet: {e}')
-    except Exception as e:
-        st.error(f'An error occurred while uploading to Google Sheets: {e}')
 
 # Display the table with entries
 st.header("Current Entries")
