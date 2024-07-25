@@ -102,6 +102,7 @@ def display_table(data):
 
 # Function to upload data to Google Sheets
 def upload_to_google_sheets(new_entry):
+    st.write("HELLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLO")
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
         scopes=[
