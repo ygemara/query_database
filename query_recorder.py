@@ -1,43 +1,57 @@
 import streamlit as st
 import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import json
+import gspread
+from google.oauth2 import service_account
 
 st.set_page_config(layout="wide")
 st.title("Query Database")
 
-# Use Streamlit secrets to get the credentials
-credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"])
+# Function to load data from Google Sheets
+def load_data_from_google_sheets():
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
 
-# Authorize and open the Google Sheet
-client = gspread.authorize(credentials)
-sheet = client.open("Your Google Sheet Name").sheet1
-
-# Function to load data from Google Sheet
-def load_data():
-    data = sheet.get_all_records()
-    df = pd.DataFrame(data)
-    if 'Date' in df.columns:
-        df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+    client = gspread.authorize(credentials)
+    sheet_id = st.secrets["sheet_id"]
+    sheet = client.open_by_key(sheet_id)
+    worksheet = sheet.worksheet("Sheet1")
+    data = worksheet.get_all_values()
+    headers = data.pop(0)
+    df = pd.DataFrame(data, columns=headers)
     return df
 
-# Function to save data to Google Sheet
-def save_data(df):
-    sheet.clear()
-    sheet.update([df.columns.values.tolist()] + df.values.tolist())
-    st.write("Data saved to Google Sheet")
+# Function to save data to Google Sheets
+def save_data_to_google_sheets(data):
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
 
-# Append entry to text file
-def append_to_text_file(entry):
-    with open(TEXT_FILE_PATH, 'a') as f:
-        f.write(f"{entry}\n")
-    st.write(f"Entry appended to {TEXT_FILE_PATH}")
+    client = gspread.authorize(credentials)
+    sheet_id = st.secrets["sheet_id"]
+    sheet = client.open_by_key(sheet_id)
+    worksheet = sheet.worksheet("Sheet1")
+    
+    # Clear the existing content
+    worksheet.clear()
+
+    # Update with new data
+    worksheet.update([data.columns.values.tolist()] + data.values.tolist())
+    st.write(f"Data saved to Google Sheets with ID {sheet_id}")
 
 # Initialize session state for the table and input fields
 if 'data' not in st.session_state:
-    st.session_state.data = load_data()
+    st.session_state.data = load_data_from_google_sheets()
 
 # Function to add a new entry
 def add_entry(date, client, am, sf, use_case, notes, code, report_id):
@@ -61,7 +75,9 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
         'Report ID': [report_id]
     })
     st.session_state.data = pd.concat([st.session_state.data, new_entry], ignore_index=True)
-    save_data(st.session_state.data)  # Save data to Google Sheet
+    
+    # Save data to Google Sheets
+    save_data_to_google_sheets(st.session_state.data)
 
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
@@ -82,12 +98,16 @@ def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
     st.session_state.data.at[index, 'Notes'] = notes
     st.session_state.data.at[index, 'Code'] = formatted_code
     st.session_state.data.at[index, 'Report ID'] = report_id
-    save_data(st.session_state.data)  # Save data to Google Sheet
+    
+    # Save data to Google Sheets
+    save_data_to_google_sheets(st.session_state.data)
 
 # Function to delete multiple entries
 def delete_entries(indices):
     st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
-    save_data(st.session_state.data)  # Save data to Google Sheet
+    
+    # Save data to Google Sheets
+    save_data_to_google_sheets(st.session_state.data)
 
 # Display the table with entries
 def display_table(data):
@@ -125,15 +145,6 @@ with st.expander("Add New Entry"):
             report_input
         )
         st.success("Entry added!")
-        # Clear input fields by resetting session state values
-        st.session_state.date_input = datetime.today().date()
-        st.session_state.client_input = ""
-        st.session_state.am_input = ""
-        st.session_state.ticket_input = ""
-        st.session_state.use_case_input = ""
-        st.session_state.notes_input = ""
-        st.session_state.code_input = ""
-        st.session_state.report_input = ""
         st.experimental_rerun()
 
 # Edit/Delete section at the end
@@ -164,6 +175,7 @@ if selected_indices:
             update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
             st.success("Entry updated!")
             st.experimental_rerun()  # Refresh the page to update the table
+
     if st.button("Delete Selected Entries"):
         delete_entries(idx_list)
         st.success("Selected entries deleted!")
@@ -176,5 +188,5 @@ if uploaded_file is not None:
     data = pd.read_csv(uploaded_file, parse_dates=['Date'])
     data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
     st.session_state.data = pd.concat([st.session_state.data, data], ignore_index=True)
-    save_data(st.session_state.data)
+    save_data_to_google_sheets(st.session_state.data)
     st.success("Data loaded from CSV.")
