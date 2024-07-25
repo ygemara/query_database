@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime
 import os
 import json
+import gspread
+from google.oauth2 import service_account
 
 st.set_page_config(layout="wide")
 st.title("Query Database")
@@ -63,6 +65,9 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
     entry_dict = new_entry.to_dict('records')[0]
     append_to_text_file(entry_dict)
 
+    # Upload the new entry to Google Sheets
+    upload_to_google_sheets(new_entry)
+
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
     if code:
@@ -94,6 +99,43 @@ def display_table(data):
     # Format the Code column for better display
     data['Code'] = data['Code'].apply(lambda x: json.dumps(json.loads(x), indent=4) if x else x)
     st.dataframe(data)
+
+# Function to upload data to Google Sheets
+def upload_to_google_sheets(new_entry):
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
+
+    client = gspread.authorize(credentials)
+    sheet_id = st.secrets["sheet_id"]
+    csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    database_df = pd.read_csv(csv_url, on_bad_lines='skip')
+
+    # Concatenate the original DataFrame with the new entry
+    database_df = pd.concat([database_df, new_entry], ignore_index=True)
+
+    # Read the Google Sheets URL from Streamlit secrets
+    sheet_url = st.secrets["private_gsheets_url"]
+    sheet = client.open_by_url(sheet_url)
+    worksheet = sheet.worksheet("Sheet1")
+
+    google_sheet_headers = worksheet.row_values(1)
+    dataframe_headers = database_df.columns.tolist()
+
+    if google_sheet_headers != dataframe_headers:
+        st.error("Column headers do not match!")
+    else:
+        data = [dataframe_headers] + database_df.values.tolist()
+        try:
+            worksheet.clear()
+            worksheet.update(data)
+            st.success('Data has been written to Google Sheets')
+        except Exception as e:
+            st.error(f'An error occurred: {e}')
 
 # Display the table with entries
 st.header("Current Entries")
