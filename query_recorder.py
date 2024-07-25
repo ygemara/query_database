@@ -102,7 +102,7 @@ def display_table(data):
 
 # Function to upload data to Google Sheets
 def upload_to_google_sheets(new_entry):
-    st.write("HELLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLO")
+    
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
         scopes=[
@@ -128,6 +128,7 @@ def upload_to_google_sheets(new_entry):
     dataframe_headers = database_df.columns.tolist()
 
     if google_sheet_headers != dataframe_headers:
+        st.write("HELLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLO")
         st.error("Column headers do not match!")
     else:
         data = [dataframe_headers] + database_df.values.tolist()
