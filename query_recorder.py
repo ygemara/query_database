@@ -129,7 +129,7 @@ def upload_to_google_sheets(new_entry):
     st.write(dataframe_headers)
     if google_sheet_headers != dataframe_headers:
         st.write(dataframe_headers)
-        st.error("Column headers do not match!")
+        #st.error("Column headers do not match!")
     else:
         data = [dataframe_headers] + database_df.values.tolist()
         try:
