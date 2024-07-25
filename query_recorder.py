@@ -30,6 +30,12 @@ def save_data(df):
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
     st.write("Data saved to Google Sheet")
 
+# Append entry to text file
+def append_to_text_file(entry):
+    with open(TEXT_FILE_PATH, 'a') as f:
+        f.write(f"{entry}\n")
+    st.write(f"Entry appended to {TEXT_FILE_PATH}")
+
 # Initialize session state for the table and input fields
 if 'data' not in st.session_state:
     st.session_state.data = load_data()
