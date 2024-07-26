@@ -78,7 +78,7 @@ def add_entry(date, client, am, sf, use_case, notes, code, report_id):
     
     # Save data to Google Sheets
     save_data_to_google_sheets(st.session_state.data)
-    st.snow()
+    
 # Function to update an existing entry
 def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
     if code:
@@ -152,6 +152,7 @@ with st.expander("Add New Entry"):
             report_input
         )
         st.success("Entry added!")
+        st.snow()
         st.experimental_rerun()
 
 # Edit/Delete section at the end
