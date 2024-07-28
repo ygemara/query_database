@@ -141,7 +141,7 @@ with st.expander("Add New Entry"):
     report_input = st.text_input("**Report ID**")
 
     if st.button("Add Entry"):
-        st.snow()
+        st.balloons()
         add_entry(
             date_input.strftime('%Y-%m-%d'), 
             client_input, 
@@ -185,8 +185,6 @@ if selected_indices:
             st.experimental_rerun()  # Refresh the page to update the table
 
     if st.button("Delete Selected Entries"):
-        st.snow()
-        st.balloons()
         delete_entries(idx_list)
         st.success("Selected entries deleted!")
         st.experimental_rerun()  # Refresh the page to update the table
