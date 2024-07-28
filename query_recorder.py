@@ -141,6 +141,7 @@ with st.expander("Add New Entry"):
     report_input = st.text_input("**Report ID**")
 
     if st.button("Add Entry"):
+        st.snow()
         add_entry(
             date_input.strftime('%Y-%m-%d'), 
             client_input, 
@@ -152,7 +153,6 @@ with st.expander("Add New Entry"):
             report_input
         )
         st.success("Entry added!")
-        st.snow()
         st.experimental_rerun()
 
 # Edit/Delete section at the end
