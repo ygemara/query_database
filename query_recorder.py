@@ -102,61 +102,25 @@ def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
     # Save data to Google Sheets
     save_data_to_google_sheets(st.session_state.data)
 
-# Function to delete an entry
-def delete_entry(index):
-    st.session_state.data = st.session_state.data.drop(index).reset_index(drop=True)
+# Function to delete multiple entries
+def delete_entries(indices):
+    st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
     
     # Save data to Google Sheets
     save_data_to_google_sheets(st.session_state.data)
 
-# Display the table with entries and Edit/Delete buttons
+# Display the table with entries
 def display_table(data):
-    st.write("### Current Entries")
-    edited_data = data.copy()
+    def format_code(x):
+        if x:
+            try:
+                return json.dumps(json.loads(x), indent=4)
+            except json.JSONDecodeError:
+                return x  # Return the original value if it's not valid JSON
+        return x
 
-    for index, row in edited_data.iterrows():
-        with st.expander(f"Entry {index} - {row['Client']}"):
-            row_col1, row_col2, row_col3, row_col4, row_col5, row_col6, row_col7, row_col8, row_col9, row_col10 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
-            
-            row_col1.write(index)
-            row_col2.write(row['Date'])
-            row_col3.write(row['Client'])
-            row_col4.write(row['AM'])
-            row_col5.write(row['SF Ticket'])
-            row_col6.write(row['Use Case'])
-            row_col7.write(row['Notes'][:20] + '...' if len(row['Notes']) > 20 else row['Notes'])
-            row_col8.write(row['Code'][:20] + '...' if len(row['Code']) > 20 else row['Code'])
-            row_col9.write(row['Report ID'])
-            
-            if row_col10.button("Edit", key=f"edit_{index}"):
-                st.session_state.edit_index = index
-                st.session_state.edit_mode = True
-            if row_col10.button("Delete", key=f"delete_{index}"):
-                delete_entry(index)
-                st.success(f"Entry {index} deleted!")
-                st.experimental_rerun()
-
-    if 'edit_mode' in st.session_state and st.session_state.edit_mode:
-        index = st.session_state.edit_index
-        entry = data.iloc[index]
-        
-        st.write(f"### Editing Entry {index}")
-        
-        # Display the edit form
-        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{index}")
-        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{index}")
-        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{index}")
-        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{index}")
-        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{index}")
-        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{index}")
-        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{index}", height=200)
-        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{index}")
-        
-        if st.button("Update Entry", key=f"update_{index}"):
-            update_entry(index, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
-            st.success("Entry updated!")
-            st.session_state.edit_mode = False
-            st.experimental_rerun()
+    data['Code'] = data['Code'].apply(format_code)
+    st.dataframe(data)
 
 # Display the table with entries
 st.header("Current Entries")
@@ -190,6 +154,40 @@ with st.expander("Add New Entry"):
         )
         st.success("Entry added!")
         st.experimental_rerun()
+
+# Edit/Delete section at the end
+st.header("Edit/Delete Entries")
+
+# Allow user to select entries to edit or delete
+options = [f"{i} - {row['Client']}/{row['AM']}" for i, row in st.session_state.data.iterrows()]
+selected_indices = st.multiselect("Select entries to edit/delete:", options)
+
+if selected_indices:
+    idx_list = [int(i.split(" - ")[0]) for i in selected_indices]
+    if len(idx_list) == 1:
+        idx = idx_list[0]
+        st.subheader(f"Editing Entry {idx}")
+        entry = st.session_state.data.iloc[idx]
+
+        # Display the edit form only if an entry is selected
+        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{idx}")
+        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{idx}")
+        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{idx}")
+        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{idx}")
+        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{idx}")
+        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{idx}")
+        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{idx}", height=200)
+        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{idx}")
+
+        if st.button("Update Entry"):
+            update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
+            st.success("Entry updated!")
+            st.experimental_rerun()  # Refresh the page to update the table
+
+    if st.button("Delete Selected Entries"):
+        delete_entries(idx_list)
+        st.success("Selected entries deleted!")
+        st.experimental_rerun()  # Refresh the page to update the table
 
 # Option to upload data from a CSV file
 st.header("Upload Data from CSV")
