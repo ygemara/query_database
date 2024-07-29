@@ -115,17 +115,17 @@ def display_table(data):
     for index, row in data.iterrows():
         st.write(f"**Row {index}:**")
         st.write(row)
-        edit_button = st.button(f"Edit", key=f"edit_{index}")
-        delete_button = st.button(f"Delete", key=f"delete_{index}")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Edit", key=f"edit_{index}"):
+                st.session_state.edit_index = index
+                st.session_state.edit_mode = True
         
-        if edit_button:
-            st.session_state.edit_index = index
-            st.session_state.edit_mode = True
-        
-        if delete_button:
-            delete_entry(index)
-            st.success(f"Entry {index} deleted!")
-            st.experimental_rerun()
+        with col2:
+            if st.button("Delete", key=f"delete_{index}"):
+                delete_entry(index)
+                st.success(f"Entry {index} deleted!")
+                st.experimental_rerun()
 
     if 'edit_mode' in st.session_state and st.session_state.edit_mode:
         index = st.session_state.edit_index
