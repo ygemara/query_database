@@ -113,26 +113,28 @@ def delete_entry(index):
 def display_table(data):
     st.write("### Current Entries")
     edited_data = data.copy()
+
     for index, row in edited_data.iterrows():
-        row_col1, row_col2, row_col3, row_col4, row_col5, row_col6, row_col7, row_col8, row_col9, row_col10 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
-        
-        row_col1.write(index)
-        row_col2.write(row['Date'])
-        row_col3.write(row['Client'])
-        row_col4.write(row['AM'])
-        row_col5.write(row['SF Ticket'])
-        row_col6.write(row['Use Case'])
-        row_col7.write(row['Notes'])
-        row_col8.write(row['Code'])
-        row_col9.write(row['Report ID'])
-        
-        if row_col10.button("Edit", key=f"edit_{index}"):
-            st.session_state.edit_index = index
-            st.session_state.edit_mode = True
-        if row_col10.button("Delete", key=f"delete_{index}"):
-            delete_entry(index)
-            st.success(f"Entry {index} deleted!")
-            st.experimental_rerun()
+        with st.expander(f"Entry {index} - {row['Client']}"):
+            row_col1, row_col2, row_col3, row_col4, row_col5, row_col6, row_col7, row_col8, row_col9, row_col10 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+            
+            row_col1.write(index)
+            row_col2.write(row['Date'])
+            row_col3.write(row['Client'])
+            row_col4.write(row['AM'])
+            row_col5.write(row['SF Ticket'])
+            row_col6.write(row['Use Case'])
+            row_col7.write(row['Notes'][:20] + '...' if len(row['Notes']) > 20 else row['Notes'])
+            row_col8.write(row['Code'][:20] + '...' if len(row['Code']) > 20 else row['Code'])
+            row_col9.write(row['Report ID'])
+            
+            if row_col10.button("Edit", key=f"edit_{index}"):
+                st.session_state.edit_index = index
+                st.session_state.edit_mode = True
+            if row_col10.button("Delete", key=f"delete_{index}"):
+                delete_entry(index)
+                st.success(f"Entry {index} deleted!")
+                st.experimental_rerun()
 
     if 'edit_mode' in st.session_state and st.session_state.edit_mode:
         index = st.session_state.edit_index
