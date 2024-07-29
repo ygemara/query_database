@@ -109,23 +109,30 @@ def delete_entry(index):
     # Save data to Google Sheets
     save_data_to_google_sheets(st.session_state.data)
 
-# Display the table with entries
+# Display the table with entries and Edit/Delete buttons
 def display_table(data):
     st.write("### Current Entries")
-    for index, row in data.iterrows():
-        st.write(f"**Row {index}:**")
-        st.write(row)
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Edit", key=f"edit_{index}"):
-                st.session_state.edit_index = index
-                st.session_state.edit_mode = True
+    edited_data = data.copy()
+    for index, row in edited_data.iterrows():
+        row_col1, row_col2, row_col3, row_col4, row_col5, row_col6, row_col7, row_col8, row_col9, row_col10 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
         
-        with col2:
-            if st.button("Delete", key=f"delete_{index}"):
-                delete_entry(index)
-                st.success(f"Entry {index} deleted!")
-                st.experimental_rerun()
+        row_col1.write(index)
+        row_col2.write(row['Date'])
+        row_col3.write(row['Client'])
+        row_col4.write(row['AM'])
+        row_col5.write(row['SF Ticket'])
+        row_col6.write(row['Use Case'])
+        row_col7.write(row['Notes'])
+        row_col8.write(row['Code'])
+        row_col9.write(row['Report ID'])
+        
+        if row_col10.button("Edit", key=f"edit_{index}"):
+            st.session_state.edit_index = index
+            st.session_state.edit_mode = True
+        if row_col10.button("Delete", key=f"delete_{index}"):
+            delete_entry(index)
+            st.success(f"Entry {index} deleted!")
+            st.experimental_rerun()
 
     if 'edit_mode' in st.session_state and st.session_state.edit_mode:
         index = st.session_state.edit_index
