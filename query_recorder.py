@@ -24,7 +24,7 @@ def load_data_from_google_sheets():
     worksheet = sheet.worksheet("Sheet1")
     data = worksheet.get_all_values()
     headers = data.pop(0)
-    df = pd.DataFrame(data, columns=headers)
+    df = pd.DataFrame(data, columns=headers).sort_values("Date",ascending = False)
     return df
 
 # Function to save data to Google Sheets
