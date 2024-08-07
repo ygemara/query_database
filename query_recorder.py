@@ -142,7 +142,7 @@ with st.expander("Add New Entry"):
 
     if st.button("Add Entry"):
         st.snow()
-        st.toast(icon = 🎉)
+        st.toast(icon = "🎉")
         add_entry(
             date_input.strftime('%Y-%m-%d'), 
             client_input, 
