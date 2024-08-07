@@ -141,7 +141,8 @@ with st.expander("Add New Entry"):
     report_input = st.text_input("**Report ID**")
 
     if st.button("Add Entry"):
-        st.balloons()
+        st.snow()
+        st.toast(icon = 🎉)
         add_entry(
             date_input.strftime('%Y-%m-%d'), 
             client_input, 
