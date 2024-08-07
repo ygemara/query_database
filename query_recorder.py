@@ -142,7 +142,7 @@ with st.expander("Add New Entry"):
 
     if st.button("Add Entry"):
         st.snow()
-        st.toast(icon = "🎉")
+        #st.toast(icon = "🎉")
         add_entry(
             date_input.strftime('%Y-%m-%d'), 
             client_input, 
@@ -181,6 +181,7 @@ if selected_indices:
         report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{idx}")
 
         if st.button("Update Entry"):
+            st.snow()
             update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
             st.success("Entry updated!")
             st.experimental_rerun()  # Refresh the page to update the table
