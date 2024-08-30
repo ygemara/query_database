@@ -160,7 +160,6 @@ st.header("Edit/Delete Entries")
 
 # Allow user to select entries to edit or delete
 options = [f"{i} - {row['Client']}/{row['AM']}/{row['Date']}" for i, row in st.session_state.data.iterrows()]
-
 selected_indices = st.multiselect("Select entries to edit/delete:", options)
 
 if selected_indices:
