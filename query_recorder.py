@@ -160,16 +160,13 @@ st.header("Edit/Delete Entries")
 
 # Allow user to select entries to edit or delete
 options = [f"{i} - {row['Client']}/{row['AM']}/{row['Date']}" for i, row in st.session_state.data.iterrows()]
-options = [f"{row['ID']} - {row['Client']}/{row['AM']}/{row['Date']}" for i, row in st.session_state.data.iterrows()]
 
 selected_indices = st.multiselect("Select entries to edit/delete:", options)
 
 if selected_indices:
-    #idx_list = [int(i.split(" - ")[0]) for i in selected_indices]
-    selected_id = selected_indices[0].split(" - ")[0]
+    idx_list = [int(i.split(" - ")[0]) for i in selected_indices]
     if len(idx_list) == 1:
-        #idx = idx_list[0]
-        idx = st.session_state.data[st.session_state.data['ID'] == selected_id].index[0]
+        idx = idx_list[0]
         st.subheader(f"Editing Entry {idx}")
         entry = st.session_state.data.iloc[idx]
 
