@@ -56,153 +56,160 @@ def save_data_to_google_sheets(data):
 if 'data' not in st.session_state:
     st.session_state.data = load_data_from_google_sheets()
 
-# Function to add a new entry
-def add_entry(date, client, am, sf, use_case, notes, code, report_id):
-    if code:
-        try:
-            formatted_code = json.dumps(json.loads(code), indent=4)
-        except json.JSONDecodeError:
-            st.error("Invalid JSON format in the Code field.")
-            return
-    else:
-        formatted_code = ""
+# Ensure required columns are present
+required_columns = ['id', 'Client', 'AM', 'Date']
+missing_columns = [col for col in required_columns if col not in st.session_state.data.columns]
 
-    new_entry = pd.DataFrame({
-        'Date': [date], 
-        'Client': [client],
-        'AM': [am],
-        'SF Ticket': [sf],
-        'Use Case': [use_case],
-        'Notes': [notes],
-        'Code': [formatted_code],
-        'Report ID': [report_id],
-        'id': [str(uuid.uuid4())]
-    })
-    st.session_state.data = pd.concat([st.session_state.data, new_entry], ignore_index=True)
-    
-    # Save data to Google Sheets
-    save_data_to_google_sheets(st.session_state.data)
-    
-# Function to update an existing entry
-def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
-    if code:
-        try:
-            formatted_code = json.dumps(json.loads(code), indent=4)
-        except json.JSONDecodeError:
-            st.error("Invalid JSON format in the Code field.")
-            return
-    else:
-        formatted_code = ""
-
-    st.session_state.data.at[index, 'Date'] = date
-    st.session_state.data.at[index, 'Client'] = client
-    st.session_state.data.at[index, 'AM'] = am
-    st.session_state.data.at[index, 'SF Ticket'] = sf
-    st.session_state.data.at[index, 'Use Case'] = use_case
-    st.session_state.data.at[index, 'Notes'] = notes
-    st.session_state.data.at[index, 'Code'] = formatted_code
-    st.session_state.data.at[index, 'Report ID'] = report_id
-    
-    # Save data to Google Sheets
-    save_data_to_google_sheets(st.session_state.data)
-
-# Function to delete multiple entries
-def delete_entries(indices):
-    st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
-    
-    # Save data to Google Sheets
-    save_data_to_google_sheets(st.session_state.data)
-
-# Display the table with entries
-def display_table(data):
-    def format_code(x):
-        if x:
+if missing_columns:
+    st.error(f"Missing columns in the data: {', '.join(missing_columns)}")
+else:
+    # Function to add a new entry
+    def add_entry(date, client, am, sf, use_case, notes, code, report_id):
+        if code:
             try:
-                return json.dumps(json.loads(x), indent=4)
+                formatted_code = json.dumps(json.loads(code), indent=4)
             except json.JSONDecodeError:
-                return x  # Return the original value if it's not valid JSON
-        return x
+                st.error("Invalid JSON format in the Code field.")
+                return
+        else:
+            formatted_code = ""
 
-    data['Code'] = data['Code'].apply(format_code)
-    st.dataframe(data)
-
-# Display the table with entries
-st.header("Current Entries")
-display_table(st.session_state.data)
-
-# Expandable section for adding new entries
-with st.expander("Add New Entry"):
-    st.markdown("## Add a New Entry")
-    st.write("Fill in the details below to add a new entry to the database.")
+        new_entry = pd.DataFrame({
+            'Date': [date], 
+            'Client': [client],
+            'AM': [am],
+            'SF Ticket': [sf],
+            'Use Case': [use_case],
+            'Notes': [notes],
+            'Code': [formatted_code],
+            'Report ID': [report_id],
+            'id': [str(uuid.uuid4())]
+        })
+        st.session_state.data = pd.concat([st.session_state.data, new_entry], ignore_index=True)
+        
+        # Save data to Google Sheets
+        save_data_to_google_sheets(st.session_state.data)
     
-    date_input = st.date_input("**Date**", datetime.today().date())
-    client_input = st.text_input("**Client**")
-    am_input = st.text_input("**AM**")
-    ticket_input = st.text_input("**SF Ticket**")
-    use_case_input = st.text_input("**Use Case**")
-    notes_input = st.text_area("**Notes**", height=100)
-    code_input = st.text_area("**Code**", height=200)
-    report_input = st.text_input("**Report ID**")
+    # Function to update an existing entry
+    def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
+        if code:
+            try:
+                formatted_code = json.dumps(json.loads(code), indent=4)
+            except json.JSONDecodeError:
+                st.error("Invalid JSON format in the Code field.")
+                return
+        else:
+            formatted_code = ""
 
-    if st.button("Add Entry"):
-        st.balloons()
-        add_entry(
-            date_input.strftime('%Y-%m-%d'), 
-            client_input, 
-            am_input, 
-            ticket_input, 
-            use_case_input, 
-            notes_input, 
-            code_input, 
-            report_input
-        )
-        st.success("Entry added!")
-        st.experimental_rerun()
+        st.session_state.data.at[index, 'Date'] = date
+        st.session_state.data.at[index, 'Client'] = client
+        st.session_state.data.at[index, 'AM'] = am
+        st.session_state.data.at[index, 'SF Ticket'] = sf
+        st.session_state.data.at[index, 'Use Case'] = use_case
+        st.session_state.data.at[index, 'Notes'] = notes
+        st.session_state.data.at[index, 'Code'] = formatted_code
+        st.session_state.data.at[index, 'Report ID'] = report_id
+        
+        # Save data to Google Sheets
+        save_data_to_google_sheets(st.session_state.data)
 
-# Edit/Delete section at the end
-st.header("Edit/Delete Entries")
+    # Function to delete multiple entries
+    def delete_entries(indices):
+        st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
+        
+        # Save data to Google Sheets
+        save_data_to_google_sheets(st.session_state.data)
 
-# Allow user to select entries to edit or delete
-options = [f"{row['id']} - {row['Client']}/{row['AM']}/{row['Date']}" for _, row in st.session_state.data.iterrows()]
-selected_ids = st.multiselect("Select entries to edit/delete:", options)
+    # Display the table with entries
+    def display_table(data):
+        def format_code(x):
+            if x:
+                try:
+                    return json.dumps(json.loads(x), indent=4)
+                except json.JSONDecodeError:
+                    return x  # Return the original value if it's not valid JSON
+            return x
 
-if selected_ids:
-    id_list = [i.split(" - ")[0] for i in selected_ids]
-    if len(id_list) == 1:
-        entry_id = id_list[0]
-        idx = st.session_state.data.index[st.session_state.data['id'] == entry_id].tolist()[0]
-        st.subheader(f"Editing Entry {entry_id}")
-        entry = st.session_state.data.loc[idx]
+        data['Code'] = data['Code'].apply(format_code)
+        st.dataframe(data)
 
-        # Display the edit form
-        date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{entry_id}")
-        client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{entry_id}")
-        am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{entry_id}")
-        ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{entry_id}")
-        use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{entry_id}")
-        notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{entry_id}")
-        code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{entry_id}", height=200)
-        report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{entry_id}")
+    # Display the table with entries
+    st.header("Current Entries")
+    display_table(st.session_state.data)
 
-        if st.button("Update Entry"):
+    # Expandable section for adding new entries
+    with st.expander("Add New Entry"):
+        st.markdown("## Add a New Entry")
+        st.write("Fill in the details below to add a new entry to the database.")
+        
+        date_input = st.date_input("**Date**", datetime.today().date())
+        client_input = st.text_input("**Client**")
+        am_input = st.text_input("**AM**")
+        ticket_input = st.text_input("**SF Ticket**")
+        use_case_input = st.text_input("**Use Case**")
+        notes_input = st.text_area("**Notes**", height=100)
+        code_input = st.text_area("**Code**", height=200)
+        report_input = st.text_input("**Report ID**")
+
+        if st.button("Add Entry"):
             st.balloons()
-            update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
-            st.success("Entry updated!")
+            add_entry(
+                date_input.strftime('%Y-%m-%d'), 
+                client_input, 
+                am_input, 
+                ticket_input, 
+                use_case_input, 
+                notes_input, 
+                code_input, 
+                report_input
+            )
+            st.success("Entry added!")
             st.experimental_rerun()
 
-    if st.button("Delete Selected Entries"):
-        indices_to_delete = st.session_state.data.index[st.session_state.data['id'].isin(id_list)].tolist()
-        delete_entries(indices_to_delete)
-        st.success("Selected entries deleted!")
-        st.experimental_rerun()
+    # Edit/Delete section at the end
+    st.header("Edit/Delete Entries")
 
-# Option to upload data from a CSV file
-st.header("Upload Data from CSV")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-if uploaded_file is not None:
-    data = pd.read_csv(uploaded_file, parse_dates=['Date'])
-    data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
-    data['id'] = [str(uuid.uuid4()) for _ in range(len(data))]  # Add unique IDs to new data
-    st.session_state.data = pd.concat([st.session_state.data, data], ignore_index=True)
-    save_data_to_google_sheets(st.session_state.data)
-    st.success("Data loaded from CSV.")
+    # Allow user to select entries to edit or delete
+    options = [f"{row['id']} - {row['Client']}/{row['AM']}/{row['Date']}" for _, row in st.session_state.data.iterrows()]
+    selected_ids = st.multiselect("Select entries to edit/delete:", options)
+
+    if selected_ids:
+        id_list = [i.split(" - ")[0] for i in selected_ids]
+        if len(id_list) == 1:
+            entry_id = id_list[0]
+            idx = st.session_state.data.index[st.session_state.data['id'] == entry_id].tolist()[0]
+            st.subheader(f"Editing Entry {entry_id}")
+            entry = st.session_state.data.loc[idx]
+
+            # Display the edit form
+            date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{entry_id}")
+            client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{entry_id}")
+            am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{entry_id}")
+            ticket_input = st.text_input("SF Ticket", entry['SF Ticket'], key=f"edit_ticket_{entry_id}")
+            use_case_input = st.text_input("Use Case", entry['Use Case'], key=f"edit_use_case_{entry_id}")
+            notes_input = st.text_area("Notes", entry['Notes'], key=f"edit_notes_{entry_id}")
+            code_input = st.text_area("Code", entry['Code'], key=f"edit_code_{entry_id}", height=200)
+            report_input = st.text_input("Report ID", entry['Report ID'], key=f"edit_report_{entry_id}")
+
+            if st.button("Update Entry"):
+                st.balloons()
+                update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
+                st.success("Entry updated!")
+                st.experimental_rerun()
+
+        if st.button("Delete Selected Entries"):
+            indices_to_delete = st.session_state.data.index[st.session_state.data['id'].isin(id_list)].tolist()
+            delete_entries(indices_to_delete)
+            st.success("Selected entries deleted!")
+            st.experimental_rerun()
+
+    # Option to upload data from a CSV file
+    st.header("Upload Data from CSV")
+    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    if uploaded_file is not None:
+        data = pd.read_csv(uploaded_file, parse_dates=['Date'])
+        data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Format the date
+        data['id'] = [str(uuid.uuid4()) for _ in range(len(data))]  # Add unique IDs to new data
+        st.session_state.data = pd.concat([st.session_state.data, data], ignore_index=True)
+        save_data_to_google_sheets(st.session_state.data)
+        st.success("Data loaded from CSV.")
