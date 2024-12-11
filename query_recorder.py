@@ -38,7 +38,6 @@ def save_data_to_google_sheets(data):
     )
 
     client = gspread.authorize(credentials)
-    st.write(client)
     sheet_id = st.secrets["sheet_id"]
     sheet = client.open_by_key(sheet_id)
     worksheet = sheet.worksheet("Sheet1")
