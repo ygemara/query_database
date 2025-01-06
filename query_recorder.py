@@ -52,6 +52,7 @@ def save_data_to_google_sheets(data):
 # Initialize session state for the table and input fields
 if 'data' not in st.session_state:
     st.session_state.data = load_data_from_google_sheets()
+    st.session_state.original_indices = st.session_state.data.index.tolist()
 
 # Function to add a new entry
 def add_entry(date, client, am, sf, use_case, notes, code, report_id):
@@ -104,9 +105,7 @@ def update_entry(index, date, client, am, sf, use_case, notes, code, report_id):
 
 # Function to delete multiple entries
 def delete_entries(indices):
-    st.session_state.data = st.session_state.data.drop(indices).reset_index(drop=True)
-    
-    # Save data to Google Sheets
+    st.session_state.data = st.session_state.data.drop(indices)
     save_data_to_google_sheets(st.session_state.data)
 
 # Display the table with entries
@@ -155,21 +154,22 @@ with st.expander("Add New Entry"):
         st.success("Entry added!")
         st.experimental_rerun()
 
-# Edit/Delete section at the end
 st.header("Edit/Delete Entries")
 
-# Allow user to select entries to edit or delete
-options = [f"{i} - {row['Client']}/{row['AM']}/{row['Date']}" for i, row in st.session_state.data.iterrows()]
+# Select entries
+options = [f"{idx} - {row['Client']}/{row['AM']}/{row['Date']}" 
+           for idx, row in st.session_state.data.iterrows()]
 selected_indices = st.multiselect("Select entries to edit/delete:", options)
 
 if selected_indices:
     idx_list = [int(i.split(" - ")[0]) for i in selected_indices]
+    
+    # Single entry edit form
     if len(idx_list) == 1:
         idx = idx_list[0]
         st.subheader(f"Editing Entry {idx}")
-        entry = st.session_state.data.iloc[idx]
+        entry = st.session_state.data.loc[idx]
 
-        # Display the edit form only if an entry is selected
         date_input = st.date_input("Date", pd.to_datetime(entry['Date']), key=f"edit_date_{idx}")
         client_input = st.text_input("Client", entry['Client'], key=f"edit_client_{idx}")
         am_input = st.text_input("AM", entry['AM'], key=f"edit_am_{idx}")
@@ -181,14 +181,16 @@ if selected_indices:
 
         if st.button("Update Entry"):
             st.balloons()
-            update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, ticket_input, use_case_input, notes_input, code_input, report_input)
+            update_entry(idx, date_input.strftime('%Y-%m-%d'), client_input, am_input, 
+                        ticket_input, use_case_input, notes_input, code_input, report_input)
             st.success("Entry updated!")
-            st.experimental_rerun()  # Refresh the page to update the table
+            st.experimental_rerun()
 
+    # Delete button for any number of selected entries
     if st.button("Delete Selected Entries"):
         delete_entries(idx_list)
         st.success("Selected entries deleted!")
-        st.experimental_rerun()  # Refresh the page to update the table
+        st.experimental_rerun()
 
 # Option to upload data from a CSV file
 st.header("Upload Data from CSV")
